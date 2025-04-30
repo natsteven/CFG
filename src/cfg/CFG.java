@@ -4,9 +4,7 @@ import ast.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class CFG {
 	
@@ -38,25 +36,43 @@ public class CFG {
 			List<Node> currentQueue = stack.pop();
 			while (!currentQueue.isEmpty()) {
 				Node next = currentQueue.remove(0);
-				current.setSucc(next);
+				if (current.getSucc().equals(Node.NONE)) {
+					current.setSucc(next);
+				}
 				current = next;
 				if (current instanceof IfNode) {
 					stack.push(currentQueue);
 					IfNode ifNode = (IfNode) current;
 					List<Node> falseBlock = ifNode.getFalseBlock();
-					if (falseBlock.size() > 0) {
+					List<Node> trueBlock = ifNode.getTrueBlock();
+
+					if (falseBlock.size() > 0) { // handle no else case
 						stack.push(falseBlock);
 						ifNode.setSuccFalse(falseBlock.get(0));
 					} else {
 						ifNode.setSuccFalse(exit);
 					}
-					currentQueue = ifNode.getTrueBlock();
-					currentQueue.get(currentQueue.size()-1).setSucc(falseBlock.get(0));
+
+					//set succs for cases
+					Node afterIf = currentQueue.isEmpty() ? exit : currentQueue.get(0);
+					trueBlock.get(trueBlock.size()-1).setSucc(afterIf);
+					if (falseBlock.size() > 0) { // no else case
+						falseBlock.get(falseBlock.size()-1).setSucc(afterIf);
+					}
+
+					// process trueBlock
+					currentQueue = trueBlock;
+
 				} else if (current instanceof WhileNode) {
 					WhileNode whileNode = (WhileNode) current;
-					Node succFalse = currentQueue.remove(0);
-					whileNode.setSuccFalse(succFalse);
 					List<Node> whileBlock = whileNode.getStmt();
+					current = whileBlock.remove(0);
+					whileNode.setSucc(current);
+
+					Node succFalse = currentQueue.get(0);
+					whileNode.setSuccFalse(succFalse);
+					whileBlock.get(whileBlock.size()-1).setSucc(whileNode); // set loop edge
+
 					stack.push(currentQueue);
 					currentQueue = whileBlock;
 				} else if (current instanceof ReturnNode) {
@@ -83,6 +99,7 @@ public class CFG {
 			queue.add(succ);
 		}
 
+		Set<Node> visited = new HashSet<>();
 		while(!queue.isEmpty()) {
 			//difference cases for different node instances
 			succ = queue.remove(0);
@@ -95,6 +112,7 @@ public class CFG {
 				queue.add(ifSucc.getSuccFalse());
 			} else if (succ instanceof WhileNode) {
 				WhileNode whileSucc = (WhileNode) succ;
+				visited.add(whileSucc);
 				String whileSuccName = whileSucc.getName();
 				graph.append(genEdge(whileSuccName, whileSucc.getSucc().getName())).append(";\n");
 				graph.append(genEdge(whileSuccName, whileSucc.getSuccFalse().getName())).append("[style = dashed];\n");
@@ -106,7 +124,9 @@ public class CFG {
 				Node next = succ.getSucc();
 				if (next != null) {
 					graph.append(genEdge(succ.getName(), next.getName())).append(";\n");
-					queue.add(next);
+					if (!visited.contains(next)) {
+						queue.add(next);
+					}
 				}
 			}
 		}

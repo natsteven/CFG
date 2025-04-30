@@ -21,6 +21,8 @@ class CreateAST {
 			m.addNode(n);
 		}
 		ast.toDot();
+
+		// test CFG
 		CFG cfg = new CFG();
 		cfg.fromAST(ast);
 		cfg.toDot("m1");
@@ -42,6 +44,8 @@ class CreateAST {
 		ifN.setTrueBlock(truB);
 		m.addNode(ifN);
 		ast.toDot();
+
+		// test CFG
 		CFG cfg = new CFG();
 		cfg.fromAST(ast);
 		cfg.toDot("m2");
@@ -70,6 +74,8 @@ class CreateAST {
 		ifN.setFalseBlock(b);
 		m.addNode(ifN);
 		ast.toDot();
+
+		//test CFG
 		CFG cfg = new CFG();
 		cfg.fromAST(ast);
 		cfg.toDot("m3");
@@ -106,6 +112,8 @@ class CreateAST {
 		ifN.setFalseBlock(b);
 		m.addNode(ifN);
 		ast.toDot();
+
+		// test CFG
 		CFG cfg = new CFG();
 		cfg.fromAST(ast);
 		cfg.toDot("m4");

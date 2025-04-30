@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import cfg.CFG;
 import org.junit.jupiter.api.Test;
 
 import ast.*;
@@ -21,6 +21,9 @@ class CreateAST {
 			m.addNode(n);
 		}
 		ast.toDot();
+		CFG cfg = new CFG();
+		cfg.fromAST(ast);
+		cfg.toDot("m1");
 	}
 	
 	
@@ -39,6 +42,9 @@ class CreateAST {
 		ifN.setTrueBlock(truB);
 		m.addNode(ifN);
 		ast.toDot();
+		CFG cfg = new CFG();
+		cfg.fromAST(ast);
+		cfg.toDot("m2");
 	}
 	
 	@Test
@@ -64,6 +70,9 @@ class CreateAST {
 		ifN.setFalseBlock(b);
 		m.addNode(ifN);
 		ast.toDot();
+		CFG cfg = new CFG();
+		cfg.fromAST(ast);
+		cfg.toDot("m3");
 	}
 	
 	@Test
@@ -97,6 +106,9 @@ class CreateAST {
 		ifN.setFalseBlock(b);
 		m.addNode(ifN);
 		ast.toDot();
+		CFG cfg = new CFG();
+		cfg.fromAST(ast);
+		cfg.toDot("m4");
 	}
 
 

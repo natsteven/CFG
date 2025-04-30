@@ -1,0 +1,9 @@
+digraph m2 {
+"Entry" -> "n_1";
+"n_1" -> "if_1";
+"if_1" -> "n_2";
+"if_1" -> "Exit"[style = dashed];
+"n_2" -> "n_3";
+"n_3" -> "n_4";
+"n_4" -> "Exit";
+ }

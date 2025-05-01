@@ -63,7 +63,7 @@ public class AST {
 		//end of graph
 		graph.append(" }");
 		try {
-			FileWriter dotFile = new FileWriter(rootName+".dot");
+			FileWriter dotFile = new FileWriter("dots\\" + rootName+".dot");
 			dotFile.write(graph.toString());
 			dotFile.flush();
 			dotFile.close();

@@ -27,6 +27,9 @@ public class CFG {
 	public void fromAST(AST ast) {
 		MethodNode root = ast.getRoot();
 		Stack<List<Node>> stack = new Stack<>();
+		List<Node> exitList = new ArrayList<>();
+		exitList.add(exit);
+		stack.push(exitList);// exit is always the last thing to process
 
 		List<Node> queue = new ArrayList<>(root.getStmt());
 		stack.push(queue);
@@ -41,22 +44,24 @@ public class CFG {
 				}
 				current = next;
 				if (current instanceof IfNode) {
-					stack.push(currentQueue);
+					if (!currentQueue.isEmpty()){
+						stack.push(currentQueue);
+					}
 					IfNode ifNode = (IfNode) current;
 					List<Node> falseBlock = ifNode.getFalseBlock();
 					List<Node> trueBlock = ifNode.getTrueBlock();
 
-					if (falseBlock.size() > 0) { // handle no else case
+					if (!falseBlock.isEmpty()) { // handle no else case
 						stack.push(falseBlock);
 						ifNode.setSuccFalse(falseBlock.get(0));
 					} else {
-						ifNode.setSuccFalse(exit);
+						ifNode.setSuccFalse(stack.peek().get(0));
 					}
 
 					//set succs for cases
 					Node afterIf = currentQueue.isEmpty() ? exit : currentQueue.get(0);
 					trueBlock.get(trueBlock.size()-1).setSucc(afterIf);
-					if (falseBlock.size() > 0) { // no else case
+					if (!falseBlock.isEmpty()) { // no else case
 						falseBlock.get(falseBlock.size()-1).setSucc(afterIf);
 					}
 
@@ -69,7 +74,12 @@ public class CFG {
 					current = whileBlock.remove(0);
 					whileNode.setSucc(current);
 
-					Node succFalse = currentQueue.get(0);
+					Node succFalse;
+					if (!currentQueue.isEmpty()) {
+						succFalse = currentQueue.get(0);
+					} else {
+						succFalse = stack.peek().get(0);
+					}
 					whileNode.setSuccFalse(succFalse);
 					whileBlock.get(whileBlock.size()-1).setSucc(whileNode); // set loop edge
 
@@ -80,7 +90,6 @@ public class CFG {
 				}
 			}
 		}
-		current.setSucc(exit);
 	}
 
 
@@ -103,6 +112,7 @@ public class CFG {
 		while(!queue.isEmpty()) {
 			//difference cases for different node instances
 			succ = queue.remove(0);
+			visited.add(succ);
 			if (succ instanceof IfNode) {
 				IfNode ifSucc = (IfNode) succ;
 				String ifSuccName = ifSucc.getName();
@@ -112,7 +122,6 @@ public class CFG {
 				queue.add(ifSucc.getSuccFalse());
 			} else if (succ instanceof WhileNode) {
 				WhileNode whileSucc = (WhileNode) succ;
-				visited.add(whileSucc);
 				String whileSuccName = whileSucc.getName();
 				graph.append(genEdge(whileSuccName, whileSucc.getSucc().getName())).append(";\n");
 				graph.append(genEdge(whileSuccName, whileSucc.getSuccFalse().getName())).append("[style = dashed];\n");
@@ -124,7 +133,7 @@ public class CFG {
 				Node next = succ.getSucc();
 				if (next != null) {
 					graph.append(genEdge(succ.getName(), next.getName())).append(";\n");
-					if (!visited.contains(next)) {
+					if (!visited.contains(next) && !queue.contains(next)) {
 						queue.add(next);
 					}
 				}
@@ -133,7 +142,7 @@ public class CFG {
 		//end of graph
 		graph.append(" }");
 		try {
-			FileWriter dotFile = new FileWriter(fileName+"-cfg.dot");
+			FileWriter dotFile = new FileWriter("dots\\" + fileName+"-cfg.dot");
 			dotFile.write(graph.toString());
 			dotFile.flush();
 			dotFile.close();
@@ -147,4 +156,5 @@ public class CFG {
 	private static String genEdge(String from, String to) {
 		return "\""+ from +"\" -> \"" + to + "\"";
 	}
+
 }

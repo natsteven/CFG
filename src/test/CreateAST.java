@@ -1,7 +1,5 @@
 package test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,10 +73,6 @@ class CreateAST {
 		m.addNode(ifN);
 		ast.toDot();
 
-		//test CFG
-		CFG cfg = new CFG();
-		cfg.fromAST(ast);
-		cfg.toDot("m3");
 	}
 	
 	@Test
